@@ -30,6 +30,8 @@ session = Session(engine)
 
 max_date = session.query(func.max(Measurement.date)).all()
 
+first_date = session.query(func.min(Measurement.date)).all()
+
 query_date = dt.date(2017, 8, 23) - dt.timedelta(days=365)
 
 session.close()
@@ -47,6 +49,8 @@ def home():
 		f"/api/v1.0/precipitation<br/>"
 		f"/api/v1.0/stations<br/>"
 		f"/api/v1.0/tobs<br/>"
+		f"/api/v1.0/first_date<br/>"
+		f"/api/v1.0/<start>/<end><br/>"
 		)
 
 
@@ -101,6 +105,31 @@ def tobs():
 		temp_observations.append(temp_observations_dict)
 
 	return jsonify(temp_observations)
+
+
+@app.route("/api/v1.0/start/")
+def start():
+	session = Session(engine)
+	sel = [Measurement.date, func.min(Measurement.tobs), func.max(Measurement.tobs, func.avg(Measurement.tobs))]
+	result = session.query(*sel).filter(Measurement.tobs >= first_date)
+	session.close()
+
+	temperatures = []
+
+	for date, tobs in result:
+
+		temp_dict = {}
+		temp_dict["Date"] = first_date
+		temp_dict["Minimum Temp"] = result[1]
+		temp_dict["Maximum Temp"] = result[2]
+		temp_dict["Average Temp"] = result[3]
+		temperatures.append(temp_dict)
+
+	return jsonify(temperatures)
+
+	session.close()
+
+
 
 #define the main behavior
 if __name__ == "__main__":
