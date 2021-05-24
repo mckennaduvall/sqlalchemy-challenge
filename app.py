@@ -25,6 +25,16 @@ Measurement = base.classes.measurement
 Station = base.classes.station
 
 
+#find most recent date in data set
+session = Session(engine)
+
+max_date = session.query(func.max(Measurement.date)).all()
+
+query_date = dt.date(2017, 8, 23) - dt.timedelta(days=365)
+
+session.close()
+
+
 #create an app 
 app = Flask(__name__)
 
@@ -61,6 +71,7 @@ def precipitation():
 
 @app.route("/api/v1.0/stations")
 def stations():
+
 	session = Session(engine)
 	sel = [Station.name]
 	result = session.query(*sel).all()
@@ -77,12 +88,19 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def tobs():
 	session = Session(engine)
+	sel = [Measurement.tobs, Measurement.date]
+	result = session.query(*sel).filter(Measurement.date >= query_date)
+	session.close()
 
+	temp_observations = []
 
-	
+	for tobs, date in result:
+		temp_observations_dict = {}
+		temp_observations_dict["Date"] = date
+		temp_observations_dict["Temperature"] = tobs
+		temp_observations.append(temp_observations_dict)
 
-
-
+	return jsonify(temp_observations)
 
 #define the main behavior
 if __name__ == "__main__":
