@@ -42,6 +42,7 @@ def home():
 
 @app.route("/api/v1.0/precipitation")
 def precipitation():
+
 	session = Session(engine)
 	sel = [Measurement.date, Measurement.prcp]
 	result = session.query(*sel).all()
@@ -55,8 +56,33 @@ def precipitation():
 		prcp_dict["Precipitation"] = prcp
 		precipitation.append(prcp_dict)
 
-	return jsonify(precipitation)	
+	return jsonify(precipitation)
+
+
+@app.route("/api/v1.0/stations")
+def stations():
+	session = Session(engine)
+	sel = [Station.name]
+	result = session.query(*sel).all()
+	session.close()
+
+	stations = []
+
+	for name in result:
+		stations.append(name)
+
+	return jsonify(stations)
+
       
+@app.route("/api/v1.0/tobs")
+def tobs():
+	session = Session(engine)
+
+
+	
+
+
+
 
 #define the main behavior
 if __name__ == "__main__":
